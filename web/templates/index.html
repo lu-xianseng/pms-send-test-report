@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>发送测试报告</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</head>
+<body>
+<form id="my-form" action="/" method="post">
+    {% if not is_disabled %}
+    <input type="text" name="task_id" placeholder="测试单ID，多个ID用逗号隔开" required><br>
+    <input type="text" name="sender" placeholder="邮箱账户" required><br>
+    <input type="password" name="passwd" placeholder="邮箱密码" required>
+    <label><input type="checkbox" name="archive_svn" id="archive_svn" value="yes" checked >归档 SVN</label><br>
+    <label><input type="checkbox" name="send_email" value="yes" checked >发送邮件给所有人 </label><br>
+<!--    <label><input type="checkbox" name="archive_svn" id="archive_svn" value="yes" checked >归档 SVN</label><br>-->
+    <input type="submit" value="发送报告"><br>
+    <textarea rows="20" cols="100">
+【测试风险】：【】
+【测试结果】：【通过；xxxx】
+【测试策略】：【按提测单测试内容进行验证测试】
+【专项链接】：【无】
+【任务耗时】：【0.5】
+【测试机IP】：【】
+【软件&版本】：【】
+    </textarea>
+    {% endif %}
+</form>
+{% if is_disabled %}
+    <h3 id="get_task_title" style="color:red">当前存在进行中任务，请稍后刷新重试！</h3>
+    <textarea id="log-output" rows="10"></textarea>
+    {% endif %}
+</body>
+</html>

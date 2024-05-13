@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>发送测试报告</title>
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</head>
+<body>
+<!--    <input type="button" value="终止发送"><br>-->
+    <h3 id="get_task_title" style="color:red">当前存在进行中任务，请稍后刷新重试！</h3>
+    <textarea id="log-output" rows="50" cols="150"></textarea>
+
+</body>
+</html>
