@@ -218,8 +218,8 @@ if __name__ == '__main__':
     else:
         argument = {
             "task_id": "41085",
-            "sender": "luye@uniontech.com",
-            "passwd": "Lxs@00001",
+            "sender": "@uniontech.com",
+            "passwd": "",
             "email_send_all": False,
             "push_to_svn": False,
         }
