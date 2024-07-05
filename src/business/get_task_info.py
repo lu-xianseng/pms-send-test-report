@@ -36,10 +36,10 @@ class TaskBase(Query):
 
     @property
     def name(self):
-        name = self.__task['task_name']
+        name = self.__task['task_name'].strip()
         log.info(f"测试单名称：{name}")
         if re.match(
-                r'202[0-9]{5}-|^【.*?】202[0-9]{5}-|^202[0-9]-[0-9]{2}-[0-9]{2}-|^【.*?】202[0-9]-[0-9]{2}-[0-9]{2}-',
+                r'202[0-9]{5}|202[0-9]{5}-|^【.*?】202[0-9]{5}-|^202[0-9]-[0-9]{2}-[0-9]{2}-|^【.*?】202[0-9]-[0-9]{2}-[0-9]{2}-',
                 name
         ) is None:
             raise TypeError("测试单名称格式有误，缺少时间戳或时间戳格式错误！")
@@ -161,7 +161,19 @@ class TaskComment(TaskBase):
     def comment_regression_bug_id(self):
         try:
             bug = re.findall("【回归未关联bug】[：:]+?【(.*?)】", self.__comment)[0]
-            return re.split('[,|，]', bug[0])
+            bugs = re.split('[,|，]', bug)
+            log.info(f"comment regression bugs: {bugs}")
+            return bugs
+        except IndexError:
+            return []
+
+    @property
+    def comment_new_bug_id(self):
+        try:
+            bug = re.findall("【新增未关联bug】[：:]+?【(.*?)】", self.__comment)[0]
+            bugs = re.split('[,|，]', bug)
+            log.info(f"comment new bugs: {bugs}")
+            return bugs
         except IndexError:
             return []
 
@@ -240,7 +252,9 @@ class Task(TaskComment):
     def new_bug(self):
         new_bugs = []
 
-        for _id in self.new_add:
+        all_bug = self.new_add + self.comment_new_bug_id
+
+        for _id in all_bug:
             sql = (f"SELECT {self.__bug_query_title} FROM zt_bug bug "
                    f"WHERE bug.id={_id} and bug.deleted='0' and bug.activatedCount='0'")
             bug = self.query(sql)[0]
@@ -255,6 +269,7 @@ class Task(TaskComment):
             "failed": []
         }
         regression_bugs = self.comment_regression_bug_id + self.regression
+        log.warning(f"regression bugs: {regression_bugs}")
         for _id in regression_bugs:
             bug = self.query(f'SELECT {self.__bug_query_title} FROM zt_bug bug where id={_id}')
             bug[0]['bug_status'] = self.__bug_status_map.get(bug[0]['bug_status'])
@@ -333,6 +348,7 @@ class Task(TaskComment):
         sql = (f"select testResult from zt_testtask "
                f"where id='{self.task_id}'")
         task_result = self.query(sql)[0]["testResult"]
+        log.debug(task_result, self.comment_result.result)
         if task_result != self.comment_result.result:
             raise Exception("测试单测试结果与备注结果不符")
         if any(
@@ -351,7 +367,14 @@ class Task(TaskComment):
                               f"阻塞 {case.blocked} 条，共新增 {len(self.new_bug())} 个bug")
         return ReturnAttr(conclusion)
 
-    def legacy_bug(self, exclude_project_id, base_line, exclude_words, words):
+    def legacy_bug(self, exclude_project_id, base_line, exclude_words, words, legacy_check):
+        if not legacy_check:
+            info = {
+                'di': "无需统计",
+                'bug_list': [],
+                'serious_list': [],
+            }
+            return ReturnAttr(info)
         title = ("bug.id,CONCAT(product.name,'(#', product.id, ')') as product,branch.name branch,module.name module,"
                  "CONCAT(project.name, '(#', project.id, ')') project,story.title story,task.name task,bug.title,"
                  "bug.keywords,bug.severity,bug.pri,bug.type,bug.os,bug.browser,bug.baseline,bug.active,bug.trigger,"
@@ -423,15 +446,20 @@ class Task(TaskComment):
                 )
             if int(i['severity']) <= 2:
                 info['serious_list'].append(i)
+                log.debug(di_weight[i["severity"]])
+                log.debug(info['di'])
             info['di'] += Decimal(di_weight[i["severity"]])
         info['bug_list'] = all_bugs
+        info['di'] = str(float(info['di']))
         return ReturnAttr(info)
 
 
 if __name__ == '__main__':
     # t = TaskBase(39591)
-    t1 = Task(38813)
-    print(t1.comment_software)
+    t1 = Task(41127)
+    print(t1.name)
+    t1 = Task(40885)
+    print(t1.name)
     # from src.business.cooperation_operation import Cooperation
     #
     # Cooperation(t1.product_id, t1.project_name)

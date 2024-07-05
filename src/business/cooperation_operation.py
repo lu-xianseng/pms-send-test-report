@@ -89,13 +89,16 @@ class Cooperation:
         base_line = svn_url[0].get("base_line").strip()
         words = svn_url[0].get("words").strip()
         exclude_words = svn_url[0].get("exclude_words").strip()
+        legacy_check = svn_url[0].get("legacy_check").strip()
+        log.info(f"legacy_check:{legacy_check}")
         package_info = {
             "svn": svn,
             "package": package,
             "exclude_project_id": exclude_project_id,
             "base_line": base_line,
             "words": words,
-            "exclude_words": exclude_words
+            "exclude_words": exclude_words,
+            "legacy_check": True if legacy_check == "是" else False,
         }
         log.info(package_info)
         return package_info

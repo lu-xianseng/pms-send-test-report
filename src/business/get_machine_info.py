@@ -90,13 +90,15 @@ class MachineInfo:
         )
         for hardware in self.source_hardware:
             if hardware["board"] in product_name:
-                return {
+                info = {
                     "cpu": hardware.get("cpu"),
                     "mem": hardware.get("mem"),
                     "gpu": hardware.get("gpu"),
                     "hard": hardware.get("hard"),
                     "net": hardware.get("net")
                 }
+                log.info(info)
+                return info
         else:
             msg = f"{ip},无对应机器的硬件配置，请联系管理员添加，或自行上明道云添加"
             log.error(msg)

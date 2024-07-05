@@ -20,7 +20,7 @@ import traceback
 
 
 def main(task_id: str = None, sender: str = None, passwd: str = None, email_send_all: bool = None,
-         push_to_svn: bool = None):
+         push_to_svn: bool = None, temp_review: str = None, temp_cc: str = None):
     """
     @param task_id: 测试单id
     @param sender: 发件人
@@ -28,6 +28,8 @@ def main(task_id: str = None, sender: str = None, passwd: str = None, email_send
     @param email_send_all:    是否发送邮件
     @param push_to_svn:  是否归档svn
     @return:
+    @param temp_cc: 临时抄送人
+    @param temp_review: 临时接收人
     """
     all_task_id = re.split(r'[,|，]', task_id)
     for task_id in all_task_id:
@@ -67,6 +69,7 @@ def main(task_id: str = None, sender: str = None, passwd: str = None, email_send
                 base_line=cpt_svn_package.get('base_line'),
                 exclude_words=cpt_svn_package.get('exclude_words'),
                 words=cpt_svn_package.get('words'),
+                legacy_check=cpt_svn_package.get('legacy_check')
             )
 
             svn = SVNReport(cpt_svn_package.get('svn'))
@@ -115,7 +118,7 @@ def main(task_id: str = None, sender: str = None, passwd: str = None, email_send
                 task_url,
                 task_result.bug,
                 task_result.case,
-                str(float(task_legacy_bug.di)),
+                task_legacy_bug.di,
                 task_comment_link,
                 task_comment_risk,
                 task_new_bug + task_regression_bug.failed,
@@ -138,6 +141,17 @@ def main(task_id: str = None, sender: str = None, passwd: str = None, email_send
             else:
                 to = [sender]
                 cc = []
+
+            if temp_review:
+                tmp_review = re.split(r'[,|，]', temp_review)
+                log.debug(f"----> {tmp_review}")
+                to += tmp_review
+                log.debug(f"----> {to}")
+
+            if temp_cc:
+                temp_cc = re.split(r'[,|，]', temp_cc)
+                cc += temp_cc
+
             if cpt_svn_package.get('svn'):
                 # 延迟归档则显示归档目录
                 if push_to_svn:
@@ -162,7 +176,7 @@ def main(task_id: str = None, sender: str = None, passwd: str = None, email_send
                 reopen_num=len(task_regression_bug.failed),
                 serious_legacy=len(task_legacy_bug.serious_list),
                 all_bugs=len(task_legacy_bug.bug_list),
-                legacy_di=str(float(task_legacy_bug.di)),
+                legacy_di=task_legacy_bug.di,
                 tactics=task_comment_plan,
                 name_zh=name_zh,
                 name_en=name_en,
@@ -203,9 +217,9 @@ if __name__ == '__main__':
         argument = get_cmd_argument()
     else:
         argument = {
-            "task_id": "39021",
-            "sender": "@uniontech.com",
-            "passwd": "Lxs",
+            "task_id": "41085",
+            "sender": "luye@uniontech.com",
+            "passwd": "Lxs@00001",
             "email_send_all": False,
             "push_to_svn": False,
         }

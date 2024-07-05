@@ -50,7 +50,8 @@ def index():
         task_id = (request.form.get('task_id'))
         sender = request.form.get('sender')
         passwd = request.form.get('passwd')
-
+        temp_rev = request.form.get('temp_rev')
+        temp_cc = request.form.get('temp_cc')
         svn_archive = request.form.get('archive_svn') == 'yes'
         send_email_to_all = request.form.get('send_email') == 'yes'
         print(svn_archive, send_email_to_all)
@@ -62,7 +63,9 @@ def index():
                                                  sender,
                                                  passwd,
                                                  send_email_to_all,
-                                                 svn_archive,)
+                                                 svn_archive,
+                                                 temp_rev,
+                                                 temp_cc)
                                            )
             main_thread.start()
         return render_template('result.html', is_disabled=working)
@@ -81,11 +84,12 @@ def logs():
     return jsonify([''])
 
 
-def run_work(lock, task_id, sender, passwd, send_email_to_all, svn_archive):
+def run_work(lock, task_id, sender, passwd, send_email_to_all, svn_archive, temp_rev,
+             temp_cc):
     with lock:
         from main import main
         main(task_id=task_id, sender=sender, passwd=passwd, email_send_all=send_email_to_all,
-             push_to_svn=svn_archive)
+             push_to_svn=svn_archive, temp_review=temp_rev, temp_cc=temp_cc)
 
 
 if __name__ == '__main__':
